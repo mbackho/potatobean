@@ -1,0 +1,353 @@
+<HTML>
+<head>
+    <title>Potatobean Animation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            width: 100%;
+            overflow: hidden;
+        }
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            transition: background 1s;
+        }
+        .potatobean-img {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.1);
+            opacity: 0;
+            transition: opacity 0.5s, filter 1s;
+            z-index: 2;
+            filter: grayscale(0%);
+            animation: zoomIn 1.2s cubic-bezier(0.23, 1.01, 0.32, 1) 0.2s forwards;
+        }
+        @keyframes zoomIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0.1);
+                opacity: 0;
+            }
+            30% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+        .flash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+            animation: flashAnim 0.3s 1.4s forwards;
+        }
+        @keyframes flashAnim {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .potatobean-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-family: 'Quicksand', 'Nunito', 'Poppins', Arial, sans-serif;
+            font-weight: 700;
+            font-size: 3vw;
+            color: #888;
+            letter-spacing: 0.1em;
+            line-height: 1.1em;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            user-select: none;
+            text-shadow: 0 2px 8px #000a;
+            transition: opacity 1.2s;
+        }
+        .potatobean-text.visible {
+            opacity: 1;
+        }
+        .menu-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            gap: 1.5em;
+            padding: 1.2em 0 0.7em 0;
+            z-index: 20;
+            background: transparent;
+        }
+        .menu-btn {
+            font-family: 'Quicksand', 'Nunito', 'Poppins', Arial, sans-serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            background: #ffe066;
+            color: #222;
+            border: none;
+            border-radius: 2em;
+            padding: 0.5em 1.6em;
+            margin: 0 0.2em;
+            cursor: pointer;
+            box-shadow: 0 2px 8px #0002;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+        .menu-btn:hover, .menu-btn:focus {
+            background: #fff3b0;
+            color: #000;
+            box-shadow: 0 4px 16px #0003;
+        }
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+        }
+        .menu-overlay.active {
+            display: flex;
+        }
+        .menu-content {
+            background: rgba(255, 224, 102, 0.5); /* 50% opacity */
+            color: #222;
+            font-family: 'Quicksand', 'Nunito', 'Poppins', Arial, sans-serif;
+            font-size: 1.5em;
+            /* border-radius removed for square corners */
+            padding: 2em 2.5em;
+            min-width: 300px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px #0005;
+            text-align: center;
+            position: relative;
+            transform: scale(0.2) translate(var(--menu-x, 0), var(--menu-y, 0));
+            opacity: 0;
+            transition: transform 0.45s cubic-bezier(0.23, 1.01, 0.32, 1), opacity 0.3s;
+        }
+        .menu-overlay.active .menu-content {
+            transform: scale(1) translate(0, 0);
+            opacity: 1;
+            transition: transform 0.45s cubic-bezier(0.23, 1.01, 0.32, 1), opacity 0.3s 0.1s;
+        }
+        .menu-close {
+            position: absolute;
+            top: 0.7em;
+            right: 1em;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            color: #222;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-bar">
+        <button class="menu-btn" data-menu="products">Products</button>
+        <button class="menu-btn" data-menu="about">About</button>
+        <button class="menu-btn" data-menu="contact">Contact</button>
+        <button class="menu-btn" data-menu="media">Media</button>
+        <button class="menu-btn" data-menu="game">Game</button>
+    </div>
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-content" id="menuContent">
+            <button class="menu-close" id="menuClose" title="Close">&times;</button>
+            <div id="menuText">Menu content</div>
+        </div>
+    </div>
+    <div class="flash"></div>
+    <img src="potatobean.png" class="potatobean-img" id="potato" alt="Potatobean">
+    <div class="potatobean-text" id="pb-text">
+        potato<br>bean<br>studios
+    </div>
+    <script>
+        // After zoom and flash, fade out image and fade to grey
+        setTimeout(function() {
+            var img = document.getElementById('potato');
+            img.style.opacity = 0;
+            img.style.filter = 'grayscale(100%)';
+        }, 1800); // after zoom and flash
+        // Fade in the text overlay a bit after the flash
+        setTimeout(function() {
+            document.getElementById('pb-text').classList.add('visible');
+        }, 1500);
+        // Menu logic
+        const menuOverlay = document.getElementById('menuOverlay');
+        const menuContent = document.getElementById('menuContent');
+        const menuText = document.getElementById('menuText');
+        const menuClose = document.getElementById('menuClose');
+        document.querySelectorAll('.menu-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                let menuHtml = '';
+                let type = btn.getAttribute('data-menu');
+                if(type === 'products') menuHtml = 'Products context goes here.';
+                if(type === 'about') menuHtml = 'in potatobean studios there are alex mann ezra henderson spencer backhouse n vincent potoki it is like amazon plus more stuff yay.';
+                if(type === 'contact') menuHtml = 'Contact context goes here.';
+                if(type === 'media') {
+                    // Random bird video
+                    const birdVideos = [
+                        'https://www.youtube.com/embed/9dfWzp7rYR4', // Bird sounds
+                        'https://www.youtube.com/embed/1XkqC9pYVJw', // Bird documentary
+                        'https://www.youtube.com/embed/1K8pIzFzN6w', // Bird compilation
+                        'https://www.youtube.com/embed/1XkqC9pYVJw', // Bird facts
+                        'https://www.youtube.com/embed/0u9Q0M6S2zE'  // Bird relaxing
+                    ];
+                    const idx = Math.floor(Math.random() * birdVideos.length);
+                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Random bird video:</div><iframe width="350" height="197" src="${birdVideos[idx]}" title="Bird video" frameborder="0" allowfullscreen style="border-radius:1em;"></iframe>`;
+                }
+                if(type === 'game') {
+                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Use [↑] and [↓] to move. Avoid the bullets!</div><canvas id='gameCanvas' width='400' height='300' style='background:#222;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas><div id='gameOverMsg' style='display:none;font-size:1em;color:#b00;margin-top:1em;'>Game Over!<br><button onclick=\"window.restartGame&&window.restartGame()\">Restart</button></div>`;
+                }
+                menuText.innerHTML = menuHtml;
+                // Expansion animation: set --menu-x and --menu-y to move from button to center
+                const btnRect = btn.getBoundingClientRect();
+                const contentElem = menuContent;
+                const overlayRect = menuOverlay.getBoundingClientRect();
+                // Calculate center of button and center of overlay
+                const btnCenterX = btnRect.left + btnRect.width / 2;
+                const btnCenterY = btnRect.top + btnRect.height / 2;
+                const overlayCenterX = overlayRect.left + overlayRect.width / 2;
+                const overlayCenterY = overlayRect.top + overlayRect.height / 2;
+                // Set CSS vars for transform
+                const dx = btnCenterX - overlayCenterX;
+                const dy = btnCenterY - overlayCenterY;
+                contentElem.style.setProperty('--menu-x', dx + 'px');
+                contentElem.style.setProperty('--menu-y', dy + 'px');
+                // Reset transform for animation
+                contentElem.style.transition = 'none';
+                contentElem.style.transform = `scale(0.2) translate(${dx}px, ${dy}px)`;
+                contentElem.style.opacity = '0';
+                // Force reflow
+                void contentElem.offsetWidth;
+                // Activate overlay and animate
+                menuOverlay.classList.add('active');
+                setTimeout(() => {
+                    contentElem.style.transition = '';
+                    contentElem.style.transform = '';
+                    contentElem.style.opacity = '';
+                }, 10);
+                // If game, start game logic after DOM update
+                if(type === 'game') setTimeout(startPotatoGame, 100);
+            });
+        });
+        menuClose.addEventListener('click', function() {
+            menuOverlay.classList.remove('active');
+        });
+        menuOverlay.addEventListener('click', function(e) {
+            if(e.target === menuOverlay) menuOverlay.classList.remove('active');
+        });
+        // --- Game logic ---
+        function startPotatoGame() {
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            let running = true;
+            let score = 0;
+            let frame = 0;
+            let bullets = [];
+            let guns = [
+                {y: 60, cooldown: 0},
+                {y: 150, cooldown: 30},
+                {y: 240, cooldown: 60}
+            ];
+            let potato = {x: 40, y: h/2, vy: 0, size: 40};
+            let up = false, down = false;
+            let img = new window.Image();
+            img.src = 'potatobean.png';
+            function reset() {
+                running = true;
+                score = 0;
+                frame = 0;
+                bullets = [];
+                guns = [
+                    {y: 60, cooldown: 0},
+                    {y: 150, cooldown: 30},
+                    {y: 240, cooldown: 60}
+                ];
+                potato.y = h/2;
+                potato.vy = 0;
+                document.getElementById('gameOverMsg').style.display = 'none';
+                loop();
+            }
+            window.restartGame = reset;
+            function loop() {
+                if (!running) return;
+                ctx.clearRect(0,0,w,h);
+                // Draw guns
+                guns.forEach(gun => {
+                    ctx.fillStyle = '#555';
+                    ctx.fillRect(w-30, gun.y-15, 20, 30);
+                    ctx.fillStyle = '#888';
+                    ctx.fillRect(w-10, gun.y-5, 10, 10);
+                });
+                // Draw bullets
+                ctx.fillStyle = '#f33';
+                bullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 4));
+                // Draw potato
+                if(img.complete) ctx.drawImage(img, potato.x, potato.y-potato.size/2, potato.size, potato.size);
+                else {
+                    ctx.fillStyle = '#fc3';
+                    ctx.beginPath();
+                    ctx.arc(potato.x+potato.size/2, potato.y, potato.size/2, 0, 2*Math.PI);
+                    ctx.fill();
+                }
+                // Move potato
+                if(up) potato.vy = -3;
+                else if(down) potato.vy = 3;
+                else potato.vy = 0;
+                potato.y += potato.vy;
+                if(potato.y < potato.size/2) potato.y = potato.size/2;
+                if(potato.y > h-potato.size/2) potato.y = h-potato.size/2;
+                // Move bullets
+                bullets.forEach(b => b.x -= 5);
+                bullets = bullets.filter(b => b.x > -10);
+                // Fire bullets
+                guns.forEach(gun => {
+                    if(gun.cooldown <= 0) {
+                        bullets.push({x: w-30, y: gun.y-2});
+                        gun.cooldown = 60 + Math.random()*60;
+                    } else gun.cooldown--;
+                });
+                // Collision
+                bullets.forEach(b => {
+                    if(b.x < potato.x+potato.size && b.x+8 > potato.x && b.y < potato.y+potato.size/2 && b.y+4 > potato.y-potato.size/2) {
+                        running = false;
+                        document.getElementById('gameOverMsg').style.display = 'block';
+                    }
+                });
+                // Score
+                if(running) score++;
+                ctx.fillStyle = '#ffe066';
+                ctx.font = 'bold 18px Quicksand, Arial, sans-serif';
+                ctx.fillText('Score: '+score, 10, 25);
+                if(running) requestAnimationFrame(loop);
+            }
+            // Controls
+            function key(e, d) {
+                if(e.key === 'ArrowUp') up = d;
+                if(e.key === 'ArrowDown') down = d;
+            }
+            window.addEventListener('keydown', e => key(e, true));
+            window.addEventListener('keyup', e => key(e, false));
+            reset();
+        }
+    </script>
+</body>
+</HTML>
