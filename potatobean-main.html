@@ -114,35 +114,41 @@
         .menu-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0; left: 0; width: 1000vw; height: 1000vh;
             background: rgba(0,0,0,0.5);
             z-index: 30;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
         }
         .menu-overlay.active {
             display: flex;
         }
         .menu-content {
-            background: rgba(255, 224, 102, 0.5); /* 50% opacity */
+            background: rgba(255, 224, 102, 0.9);
             color: #222;
             font-family: 'Quicksand', 'Nunito', 'Poppins', Arial, sans-serif;
             font-size: 1.5em;
-            /* border-radius removed for square corners */
             padding: 2em 2.5em;
             min-width: 300px;
-            max-width: 90vw;
+            width: calc(100vw - 100px);
+            height: calc(100vh - 100px);
             box-shadow: 0 8px 32px #0005;
             text-align: center;
-            position: relative;
-            transform: scale(0.2) translate(var(--menu-x, 0), var(--menu-y, 0));
-            opacity: 0;
-            transition: transform 0.45s cubic-bezier(0.23, 1.01, 0.32, 1), opacity 0.3s;
-        }
-        .menu-overlay.active .menu-content {
-            transform: scale(1) translate(0, 0);
+            position: fixed;
+            top: 50px;
+            left: 50px;
+            right: 50px;
+            bottom: 50px;
+            overflow: auto;
             opacity: 1;
-            transition: transform 0.45s cubic-bezier(0.23, 1.01, 0.32, 1), opacity 0.3s 0.1s;
+            transition: none;
+        }
+        .menu-content::-webkit-scrollbar {
+            width: 12px;
+        }
+        .menu-content::-webkit-scrollbar-thumb {
+            background: #ffe066;
+            border-radius: 0;
         }
         .menu-close {
             position: absolute;
@@ -197,7 +203,7 @@
                 let menuHtml = '';
                 let type = btn.getAttribute('data-menu');
                 if(type === 'products') menuHtml = 'Products context goes here.';
-                if(type === 'about') menuHtml = 'in potatobean studios there are ... it is like amazon plus more stuff yay.';
+                if(type === 'about') menuHtml = 'in potatobean studios there are alex mann ezra henderson spencer backhouse n vincent potoki it is like amazon plus more stuff yay.';
                 if(type === 'contact') menuHtml = 'Contact context goes here.';
                 if(type === 'media') {
                     // Random bird video
@@ -212,36 +218,10 @@
                     menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Random bird video:</div><iframe width="350" height="197" src="${birdVideos[idx]}" title="Bird video" frameborder="0" allowfullscreen style="border-radius:1em;"></iframe>`;
                 }
                 if(type === 'game') {
-                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Use [↑] and [↓] to move. Avoid the bullets!</div><canvas id='gameCanvas' width='400' height='300' style='background:#222;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas><div id='gameOverMsg' style='display:none;font-size:1em;color:#b00;margin-top:1em;'>Game Over!<br><button onclick=\"window.restartGame&&window.restartGame()\">Restart</button></div>`;
+                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Use ↑ and ↓ or touch to move. Avoid the bullets!</div><canvas id='gameCanvas' width='400' height='300' style='background:#222;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas><div id='gameTouchControls' style='margin:1em 0;'><button id='touchUp' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬆️</button><button id='touchDown' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬇️</button></div><div id='gameOverMsg' style='display:none;font-size:1em;color:#b00;margin-top:1em;'>Game Over!<br><button onclick=\"window.restartGame&&window.restartGame()\">Restart</button></div>`;
                 }
                 menuText.innerHTML = menuHtml;
-                // Expansion animation: set --menu-x and --menu-y to move from button to center
-                const btnRect = btn.getBoundingClientRect();
-                const contentElem = menuContent;
-                const overlayRect = menuOverlay.getBoundingClientRect();
-                // Calculate center of button and center of overlay
-                const btnCenterX = btnRect.left + btnRect.width / 2;
-                const btnCenterY = btnRect.top + btnRect.height / 2;
-                const overlayCenterX = overlayRect.left + overlayRect.width / 2;
-                const overlayCenterY = overlayRect.top + overlayRect.height / 2;
-                // Set CSS vars for transform
-                const dx = btnCenterX - overlayCenterX;
-                const dy = btnCenterY - overlayCenterY;
-                contentElem.style.setProperty('--menu-x', dx + 'px');
-                contentElem.style.setProperty('--menu-y', dy + 'px');
-                // Reset transform for animation
-                contentElem.style.transition = 'none';
-                contentElem.style.transform = `scale(0.2) translate(${dx}px, ${dy}px)`;
-                contentElem.style.opacity = '0';
-                // Force reflow
-                void contentElem.offsetWidth;
-                // Activate overlay and animate
                 menuOverlay.classList.add('active');
-                setTimeout(() => {
-                    contentElem.style.transition = '';
-                    contentElem.style.transform = '';
-                    contentElem.style.opacity = '';
-                }, 10);
                 // If game, start game logic after DOM update
                 if(type === 'game') setTimeout(startPotatoGame, 100);
             });
@@ -262,10 +242,11 @@
             let score = 0;
             let frame = 0;
             let bullets = [];
+            // Improved gun spacing: guns move up/down and fire at different intervals
             let guns = [
-                {y: 60, cooldown: 0},
-                {y: 150, cooldown: 30},
-                {y: 240, cooldown: 60}
+                {y: 60, cooldown: 0, dir: 1},
+                {y: 150, cooldown: 30, dir: -1},
+                {y: 240, cooldown: 60, dir: 1}
             ];
             let potato = {x: 40, y: h/2, vy: 0, size: 40};
             let up = false, down = false;
@@ -277,9 +258,9 @@
                 frame = 0;
                 bullets = [];
                 guns = [
-                    {y: 60, cooldown: 0},
-                    {y: 150, cooldown: 30},
-                    {y: 240, cooldown: 60}
+                    {y: 60, cooldown: 0, dir: 1},
+                    {y: 150, cooldown: 30, dir: -1},
+                    {y: 240, cooldown: 60, dir: 1}
                 ];
                 potato.y = h/2;
                 potato.vy = 0;
@@ -320,9 +301,13 @@
                 bullets = bullets.filter(b => b.x > -10);
                 // Fire bullets
                 guns.forEach(gun => {
+                    // Move gun up/down
+                    gun.y += gun.dir * 1.2;
+                    if(gun.y < 30) { gun.y = 30; gun.dir = 1; }
+                    if(gun.y > h-30) { gun.y = h-30; gun.dir = -1; }
                     if(gun.cooldown <= 0) {
                         bullets.push({x: w-30, y: gun.y-2});
-                        gun.cooldown = 60 + Math.random()*60;
+                        gun.cooldown = 40 + Math.random()*50; // faster, more random
                     } else gun.cooldown--;
                 });
                 // Collision
@@ -346,9 +331,17 @@
             }
             window.addEventListener('keydown', e => key(e, true));
             window.addEventListener('keyup', e => key(e, false));
+            // Touch controls
+            const touchUp = document.getElementById('touchUp');
+            const touchDown = document.getElementById('touchDown');
+            if(touchUp && touchDown) {
+                touchUp.addEventListener('touchstart', e => { up = true; e.preventDefault(); });
+                touchUp.addEventListener('touchend', e => { up = false; e.preventDefault(); });
+                touchDown.addEventListener('touchstart', e => { down = true; e.preventDefault(); });
+                touchDown.addEventListener('touchend', e => { down = false; e.preventDefault(); });
+            }
             reset();
         }
     </script>
 </body>
-
 </HTML>
