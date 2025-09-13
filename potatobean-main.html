@@ -165,11 +165,11 @@
 </head>
 <body>
     <div class="menu-bar">
-        <button class="menu-btn" data-menu="products">Products</button>
-        <button class="menu-btn" data-menu="about">About</button>
-        <button class="menu-btn" data-menu="contact">Contact</button>
-        <button class="menu-btn" data-menu="media">Media</button>
-        <button class="menu-btn" data-menu="game">Game</button>
+            <button class="menu-btn" data-menu="products">Products</button>
+            <button class="menu-btn" data-menu="about">About</button>
+            <button class="menu-btn" data-menu="contact">Contact</button>
+            <button class="menu-btn" data-menu="game">Game</button>
+            <button class="menu-btn" data-menu="books">Books</button>
     </div>
     <div class="menu-overlay" id="menuOverlay">
         <div class="menu-content" id="menuContent">
@@ -202,28 +202,29 @@
             btn.addEventListener('click', function(e) {
                 let menuHtml = '';
                 let type = btn.getAttribute('data-menu');
-                if(type === 'products') menuHtml = 'Products context goes here.';
+                if(type === 'products') menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Three Body Gravity Simulation</div><canvas id='gravityCanvas' width='1000' height='800' style='background:#111;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas>`;
                 if(type === 'about') menuHtml = 'in potatobean studios there are alex mann ezra henderson spencer backhouse n vincent potoki it is like amazon plus more stuff yay.';
-                if(type === 'contact') menuHtml = 'Contact context goes here.';
-                if(type === 'media') {
-                    // Random bird video
-                    const birdVideos = [
-                        'https://www.youtube.com/embed/9dfWzp7rYR4', // Bird sounds
-                        'https://www.youtube.com/embed/1XkqC9pYVJw', // Bird documentary
-                        'https://www.youtube.com/embed/1K8pIzFzN6w', // Bird compilation
-                        'https://www.youtube.com/embed/1XkqC9pYVJw', // Bird facts
-                        'https://www.youtube.com/embed/0u9Q0M6S2zE'  // Bird relaxing
-                    ];
-                    const idx = Math.floor(Math.random() * birdVideos.length);
-                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Random bird video:</div><iframe width="350" height="197" src="${birdVideos[idx]}" title="Bird video" frameborder="0" allowfullscreen style="border-radius:1em;"></iframe>`;
-                }
+                if(type === 'contact') menuHtml = 'CODE at potatobean.com[not really]';
                 if(type === 'game') {
-                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Use ↑ and ↓ or touch to move. Avoid the bullets!</div><canvas id='gameCanvas' width='400' height='300' style='background:#222;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas><div id='gameTouchControls' style='margin:1em 0;'><button id='touchUp' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬆️</button><button id='touchDown' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬇️</button></div><div id='gameOverMsg' style='display:none;font-size:1em;color:#b00;margin-top:1em;'>Game Over!<br><button onclick=\"window.restartGame&&window.restartGame()\">Restart</button></div>`;
+                    menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Use ↑ ↓ ← → or touch to move. Avoid the bullets!</div><canvas id='gameCanvas' width='550' height='400' style='background:#222;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas><div id='gameTouchControls' style='margin:1em 0;'><button id='touchUp' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬆️</button><button id='touchDown' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬇️</button><button id='touchLeft' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬅️</button><button id='touchRight' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>➡️</button></div><div id='gameOverMsg' style='display:none;font-size:1em;color:#b00;margin-top:1em;'>Game Over!<br><button onclick=\"window.restartGame&&window.restartGame()\">Restart</button></div>`;
+                }
+                if(type === 'books') {
+                    menuHtml = `
+                    <div id="bookContainer" style="display:flex;justify-content:center;align-items:center;height:100%;">
+                        <div id="bookView" style="cursor:pointer;position:relative;">
+                            <img id="bookPage0" src="0.jpg" style="max-height:70vh;max-width:45vw;box-shadow:0 4px 32px #0006;border-radius:8px;transition:box-shadow 0.3s;" alt="Book Page">
+                        </div>
+                    </div>
+                    <div style='font-size:0.7em;margin-top:1em;'>Click the page to turn</div>`;
                 }
                 menuText.innerHTML = menuHtml;
                 menuOverlay.classList.add('active');
                 // If game, start game logic after DOM update
-                if(type === 'game') setTimeout(startPotatoGame, 100);
+                if(type === 'game') setTimeout(()=>window.startPotatoGame && window.startPotatoGame(), 100);
+                // Start book viewer if needed
+                if(type === 'books') setTimeout(()=>window.startBookViewer && window.startBookViewer(), 200);
+                // Start gravity sim if needed
+                if(type === 'products') setTimeout(()=>window.startGravitySim && window.startGravitySim(), 100);
             });
         });
         menuClose.addEventListener('click', function() {
@@ -232,116 +233,12 @@
         menuOverlay.addEventListener('click', function(e) {
             if(e.target === menuOverlay) menuOverlay.classList.remove('active');
         });
-        // --- Game logic ---
-        function startPotatoGame() {
-            const canvas = document.getElementById('gameCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width, h = canvas.height;
-            let running = true;
-            let score = 0;
-            let frame = 0;
-            let bullets = [];
-            // Improved gun spacing: guns move up/down and fire at different intervals
-            let guns = [
-                {y: 60, cooldown: 0, dir: 1},
-                {y: 150, cooldown: 30, dir: -1},
-                {y: 240, cooldown: 60, dir: 1}
-            ];
-            let potato = {x: 40, y: h/2, vy: 0, size: 40};
-            let up = false, down = false;
-            let img = new window.Image();
-            img.src = 'potatobean.png';
-            function reset() {
-                running = true;
-                score = 0;
-                frame = 0;
-                bullets = [];
-                guns = [
-                    {y: 60, cooldown: 0, dir: 1},
-                    {y: 150, cooldown: 30, dir: -1},
-                    {y: 240, cooldown: 60, dir: 1}
-                ];
-                potato.y = h/2;
-                potato.vy = 0;
-                document.getElementById('gameOverMsg').style.display = 'none';
-                loop();
-            }
-            window.restartGame = reset;
-            function loop() {
-                if (!running) return;
-                ctx.clearRect(0,0,w,h);
-                // Draw guns
-                guns.forEach(gun => {
-                    ctx.fillStyle = '#555';
-                    ctx.fillRect(w-30, gun.y-15, 20, 30);
-                    ctx.fillStyle = '#888';
-                    ctx.fillRect(w-10, gun.y-5, 10, 10);
-                });
-                // Draw bullets
-                ctx.fillStyle = '#f33';
-                bullets.forEach(b => ctx.fillRect(b.x, b.y, 8, 4));
-                // Draw potato
-                if(img.complete) ctx.drawImage(img, potato.x, potato.y-potato.size/2, potato.size, potato.size);
-                else {
-                    ctx.fillStyle = '#fc3';
-                    ctx.beginPath();
-                    ctx.arc(potato.x+potato.size/2, potato.y, potato.size/2, 0, 2*Math.PI);
-                    ctx.fill();
-                }
-                // Move potato
-                if(up) potato.vy = -3;
-                else if(down) potato.vy = 3;
-                else potato.vy = 0;
-                potato.y += potato.vy;
-                if(potato.y < potato.size/2) potato.y = potato.size/2;
-                if(potato.y > h-potato.size/2) potato.y = h-potato.size/2;
-                // Move bullets
-                bullets.forEach(b => b.x -= 5);
-                bullets = bullets.filter(b => b.x > -10);
-                // Fire bullets
-                guns.forEach(gun => {
-                    // Move gun up/down
-                    gun.y += gun.dir * 1.2;
-                    if(gun.y < 30) { gun.y = 30; gun.dir = 1; }
-                    if(gun.y > h-30) { gun.y = h-30; gun.dir = -1; }
-                    if(gun.cooldown <= 0) {
-                        bullets.push({x: w-30, y: gun.y-2});
-                        gun.cooldown = 40 + Math.random()*50; // faster, more random
-                    } else gun.cooldown--;
-                });
-                // Collision
-                bullets.forEach(b => {
-                    if(b.x < potato.x+potato.size && b.x+8 > potato.x && b.y < potato.y+potato.size/2 && b.y+4 > potato.y-potato.size/2) {
-                        running = false;
-                        document.getElementById('gameOverMsg').style.display = 'block';
-                    }
-                });
-                // Score
-                if(running) score++;
-                ctx.fillStyle = '#ffe066';
-                ctx.font = 'bold 18px Quicksand, Arial, sans-serif';
-                ctx.fillText('Score: '+score, 10, 25);
-                if(running) requestAnimationFrame(loop);
-            }
-            // Controls
-            function key(e, d) {
-                if(e.key === 'ArrowUp') up = d;
-                if(e.key === 'ArrowDown') down = d;
-            }
-            window.addEventListener('keydown', e => key(e, true));
-            window.addEventListener('keyup', e => key(e, false));
-            // Touch controls
-            const touchUp = document.getElementById('touchUp');
-            const touchDown = document.getElementById('touchDown');
-            if(touchUp && touchDown) {
-                touchUp.addEventListener('touchstart', e => { up = true; e.preventDefault(); });
-                touchUp.addEventListener('touchend', e => { up = false; e.preventDefault(); });
-                touchDown.addEventListener('touchstart', e => { down = true; e.preventDefault(); });
-                touchDown.addEventListener('touchend', e => { down = false; e.preventDefault(); });
-            }
-            reset();
-        }
+        // External JS modules for menu features
+        // (game.js, book.js, product.js)
+        // These must be loaded at the end of the body
     </script>
+    <script src="game.js"></script>
+    <script src="book.js"></script>
+    <script src="product.js"></script>
 </body>
 </HTML>
