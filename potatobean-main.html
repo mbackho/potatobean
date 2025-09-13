@@ -203,7 +203,7 @@
                 let menuHtml = '';
                 let type = btn.getAttribute('data-menu');
                 if(type === 'products') menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Three Body Gravity Simulation</div><canvas id='gravityCanvas' width='1000' height='800' style='background:#111;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas>`;
-                if(type === 'about') menuHtml = 'in potatobean studios there are alex mann ezra henderson spencer backhouse n vincent potoki it is like amazon plus more stuff yay.';
+                if(type === 'about') menuHtml = 'in potatobean studios -- it is like amazon plus more stuff yay.';
                 if(type === 'contact') menuHtml = 'CODE at potatobean.com[not really]';
                 if(type === 'game') {
                     menuHtml = `<div style='font-size:0.7em;margin-bottom:1em;'>Use ↑ ↓ ← → or touch to move. Avoid the bullets!</div><canvas id='gameCanvas' width='550' height='400' style='background:#222;display:block;margin:0 auto;box-shadow:0 2px 16px #0008;'></canvas><div id='gameTouchControls' style='margin:1em 0;'><button id='touchUp' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬆️</button><button id='touchDown' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬇️</button><button id='touchLeft' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>⬅️</button><button id='touchRight' style='font-size:2em;padding:0.5em 1em;margin:0 1em;'>➡️</button></div><div id='gameOverMsg' style='display:none;font-size:1em;color:#b00;margin-top:1em;'>Game Over!<br><button onclick=\"window.restartGame&&window.restartGame()\">Restart</button></div>`;
